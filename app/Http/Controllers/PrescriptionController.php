@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Prescription;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PrescriptionController extends Controller
 {
@@ -65,8 +66,11 @@ class PrescriptionController extends Controller
 
     public function view(){
 
-        $prescriptions = Prescription::all();
-
+        $prescriptions = DB::table('prescriptions')
+            ->join('users', 'prescriptions.user_id', '=', 'users.id')
+            ->select('prescriptions.*', 'users.name as user_name')
+            ->get();
+            
         return view('Pharmacy.view_prescriptions', compact('prescriptions'));
     }
 }
