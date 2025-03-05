@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DrugController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AdminMiddleware;
@@ -32,7 +33,15 @@ Route::prefix('user')->group(function () {
     // Route::get('/upload-prescription', [PrescriptionController::class, 'uploadPrescription'])->name('User.upload_prescription');
     Route::get('/show-upload-page', [PrescriptionController::class, 'index'])->name('prescription.index');
     Route::post('/upload', [PrescriptionController::class, 'store'])->middleware('auth')->name('User.store');
+    
+});
+
+Route::prefix('pharmacy')->group(function () {
     Route::get('/view-prescriptions', [PrescriptionController::class, 'view'])->name('prescription.view');
+
+    // Drugs
+    Route::get('prepare_quotations/{id}', [DrugController::class, 'index'])->name('prepare_quotations.view');
+    Route::get('/subscription/view-images/{id}', [DrugController::class, 'viewImages'])->name('subscription.viewImages');
 });
 
 
