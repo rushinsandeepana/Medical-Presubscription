@@ -31,7 +31,7 @@ Route::prefix('user')->group(function () {
     // Route::get('/upload-prescription', [PrescriptionController::class, 'uploadPrescription'])->name('User.upload_prescription');
     // Route::get('/upload-prescription', [PrescriptionController::class, 'uploadPrescription'])->name('User.upload_prescription');
     Route::get('/show-upload-page', [PrescriptionController::class, 'index'])->name('prescription.index');
-    Route::post('/upload', [PrescriptionController::class, 'store'])->name('User.store');
+    Route::post('/upload', [PrescriptionController::class, 'store'])->middleware('auth')->name('User.store');
     Route::get('/view-prescriptions', [PrescriptionController::class, 'view'])->name('prescription.view');
 });
 
