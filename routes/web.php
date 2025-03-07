@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PrescriptionController;
+use App\Http\Controllers\QuotationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -42,6 +43,10 @@ Route::prefix('pharmacy')->group(function () {
     // Drugs
     Route::get('prepare_quotations/{id}', [DrugController::class, 'index'])->name('prepare_quotations.view');
     Route::get('/subscription/view-images/{id}', [DrugController::class, 'viewImages'])->name('subscription.viewImages');
+    Route::post('/add-drugs', [DrugController::class, 'addDrugs'])->name('quotation.addDrugs');
+    // Route::get('/view-drugs/{id}', [DrugController::class, 'viewDrugs'])->name('quotation.viewDrugs');
+
+    Route::post('/send-quotation', [QuotationController::class, 'sendQuotation'])->name('send.quotation');
 });
 
 

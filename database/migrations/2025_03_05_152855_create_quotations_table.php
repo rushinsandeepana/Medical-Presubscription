@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('drugs', function (Blueprint $table) {
+        Schema::create('quotations', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
-            $table->integer('drug_details_id');
-            $table->integer('quotation_id')->nullable();
-            $table->integer('quantity');
-            $table->decimal('amount', 8, 2);
+            $table->unsignedBigInteger('user_id');
+            $table->decimal('total_amount', 8, 2);
+            $table->string('status')->default('Pending');
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('drugs');
+        Schema::dropIfExists('quotations');
     }
 };

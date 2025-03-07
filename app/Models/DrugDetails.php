@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Drug extends Model
+class DrugDetails extends Model
 {
         // Define the table name explicitly
-        protected $table = 'drugs'; // This tells Laravel to use the 'drugs' table.
+        protected $table = 'drug_details'; // This tells Laravel to use the 'drugs' table.
 
         // Define the primary key if it's not 'id'
         // protected $primaryKey = 'your_primary_key_column';

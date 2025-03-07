@@ -43,7 +43,6 @@
 
             </div>
 
-            <!-- Right box (larger width, shorter height) -->
             <div class="col-md-7">
                 <div class="box p-4" style="border: 1px solid #ccc; height: 500px;">
                     <table class="table border-none text-center">
@@ -55,42 +54,50 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php $totalAmount = 0; @endphp
+                            @foreach ($drugs as $drug)
+                            @php
+                            $amount = $drug->quantity * $drug->price;
+                            $totalAmount += $amount; // Add to total
+                            @endphp
                             <tr>
-                                <td>rr</td>
-                                <td>rr</td>
-                                <td>rr</td>
+                                <td>{{$drug->drug_name}}</td>
+                                <td>{{$drug->quantity}}</td>
+                                <td>{{$drug->amount}}</td>
                             </tr>
+                            @endforeach
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td class="fw-bold" colspan="1"></td>
                                 <td class="fw-bold" colspan="1">Total</td>
-                                <td class="fw-bold">75</td>
+                                <td class="fw-bold">{{ number_format($totalAmount, 2) }}</td>
                             </tr>
                         </tfoot>
                     </table>
 
                     <!-- Form inside the same box -->
                     <div class="container mt-4">
-                        <form action="{{ route('add.drug') }}" method="POST">
+                        <form action="{{ route('quotation.addDrugs') }}" method="POST">
                             @csrf
                             <div class="row mb-3">
                                 <div class="col-md-6 offset-md-6">
                                     <div class="mb-3 d-flex align-items-center">
-                                        <label for="drug" class="form-label mr-3" style="width: 100px;">Drug:</label>
-                                        <select id="drug" name="drug" class="form-control" required>
+                                        <label for="drug_name" class="form-label mr-3"
+                                            style="width: 100px;">Drug:</label>
+                                        <select id="drug_id" name="drug_name" class="form-control" required>
                                             <option value="" disabled selected>Select a drug</option>
-                                            @foreach($drugs as $drug)
+                                            @foreach($drugs_details as $drug)
                                             <option value="{{ $drug->id }}">{{ $drug->drug_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
 
                                     <div class="mb-3 d-flex align-items-center">
-                                        <label for="drug" class="form-label mr-3"
+                                        <label for="quantity" class="form-label mr-3"
                                             style="width: 100px;">Quantity:</label>
-                                        <input type="number" id="drug" name="drug" class="form-control"
-                                            placeholder="Enter drug name" required>
+                                        <input type="number" id="quantity" name="quantity" class="form-control"
+                                            placeholder="Enter drug quantity" required>
                                     </div>
                                     <div class="d-flex justify-content-end">
                                         <button type="submit" class="btn btn-primary">Add</button>
@@ -100,10 +107,12 @@
                         </form>
                     </div>
                     <hr class="my-4" style="width: 100%; border: 1px solid black;">
-
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">Send Quotation</button>
-                    </div>
+                    <form action="{{ route('send.quotation')}}" method="POST">
+                        @csrf
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Send Quotation</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
