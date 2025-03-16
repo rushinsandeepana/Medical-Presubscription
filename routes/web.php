@@ -41,9 +41,9 @@ Route::prefix('pharmacy')->group(function () {
     Route::get('/view-prescriptions', [PrescriptionController::class, 'view'])->name('prescription.view');
 
     // Drugs
-    Route::get('prepare_quotations/{id}', [DrugController::class, 'index'])->name('prepare_quotations.view');
+    Route::get('prepare_quotations/{prescription_id}', [DrugController::class, 'index'])->name('prepare_quotations.view');
     Route::get('/subscription/view-images/{id}', [DrugController::class, 'viewImages'])->name('subscription.viewImages');
-    Route::post('/add-drugs', [DrugController::class, 'addDrugs'])->name('quotation.addDrugs');
+    Route::post('/quotation/addDrugs/{prescription_id}', [DrugController::class, 'addDrugs'])->name('quotation.addDrugs');
     // Route::get('/view-drugs/{id}', [DrugController::class, 'viewDrugs'])->name('quotation.viewDrugs');
 
     Route::post('/send-quotation', [QuotationController::class, 'sendQuotation'])->name('send.quotation');

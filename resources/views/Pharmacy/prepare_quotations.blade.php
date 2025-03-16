@@ -78,7 +78,8 @@
 
                     <!-- Form inside the same box -->
                     <div class="container mt-4">
-                        <form action="{{ route('quotation.addDrugs') }}" method="POST">
+                        <form action="{{ route('quotation.addDrugs', ['prescription_id' => $subscription->id]) }}"
+                            method="POST">
                             @csrf
                             <div class="row mb-3">
                                 <div class="col-md-6 offset-md-6">
@@ -108,6 +109,7 @@
                     </div>
                     <hr class="my-4" style="width: 100%; border: 1px solid black;">
                     <form action="{{ route('send.quotation')}}" method="POST">
+                        <!-- method('PUT') -->
                         @csrf
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary">Send Quotation</button>

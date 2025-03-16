@@ -22,7 +22,7 @@
                 <td class="py-4 px-6 w-48 border border-gray-500">{{ $prescription->delivery_address }}</td>
                 <td class="py-4 px-6 w-30 border border-gray-500">{{ $prescription->delivery_time }}</td>
                 <td class="py-4 px-6  border border-gray-500">
-                    <a href="{{ route('prepare_quotations.view', ['id' => $prescription->id])}}"
+                    <a href="{{ route('prepare_quotations.view', ['prescription_id' => $prescription->id]) }}"
                         class="bg-blue-600 text-white font-semibold rounded-md px-4 py-2 hover:bg-blue-700 transition duration-200 shadow-sm">
                         Prepare Quotations
                     </a>

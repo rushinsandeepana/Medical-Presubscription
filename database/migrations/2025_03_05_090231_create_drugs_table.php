@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('user_id');
             $table->integer('drug_details_id');
             $table->integer('quotation_id')->nullable();
+            $table->integer('prescription_id');
             $table->integer('quantity');
             $table->decimal('amount', 8, 2);
             $table->timestamps();

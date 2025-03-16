@@ -17,17 +17,20 @@ class QuotationController extends Controller
         // Check if there are any drugs that are NOT linked to a quotation
         $totalAmount = Drugs::where('user_id', $user->id)
                             // ->whereNull('quotation_id')
+                            ->groupBy('prescription_id')
                             ->sum('amount');
-    
+    // dd($totalAmount);
         if ($totalAmount == 0) {
             return back()->with('error', 'No drugs available for quotation.');
         }
     
-        // Check if an active quotation already exists for this user
-        $existingQuotation = Quotation::where('user_id', $user->id)
-                                      ->where('status', 'Pending')
-                                      ->first();
-    
+        $existingQuotation = Quotation::where('quotations.user_id', $user->id)
+            ->where('quotations.status', 'Pending')
+            ->leftJoin('drugs', 'drugs.quotation_id', '=', 'quotations.id')
+            ->select('quotations.id', 'quotations.user_id', 'quotations.status', 'drugs.prescription_id')
+            ->groupBy('quotations.id', 'quotations.user_id', 'quotations.status', 'drugs.prescription_id');
+            // ->first();
+    // dd($existingQuotation);
         if ($existingQuotation) {
             return back()->with('error', 'A quotation is already pending for your drugs.');
         }
@@ -46,7 +49,7 @@ class QuotationController extends Controller
             Drugs::where('user_id', $user->id)
                 ->whereNull('quotation_id')
                 ->update(['quotation_id' => $quotation->id]);
-    
+                
             DB::commit();
             return back()->with('success', 'Quotation sent successfully!');
         } catch (\Exception $e) {
