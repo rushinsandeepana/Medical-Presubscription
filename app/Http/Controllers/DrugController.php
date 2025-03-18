@@ -28,7 +28,7 @@ class DrugController extends Controller
     
         $images = json_decode($subscription->images, true);
         
-        return view('Pharmacy.prepare_quotations', compact('subscription', 'images', 'drugs_details', 'drugs'));
+        return view('Pharmacy.prepare_quotations', compact('subscription', 'images', 'drugs_details', 'drugs', 'subscriptionId'));
     }
     
     public function addDrugs(Request $request, $prescription_id)

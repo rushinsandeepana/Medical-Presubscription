@@ -40,12 +40,11 @@
                         @endif
                     </div>
                 </div>
-
             </div>
 
             <div class="col-md-7">
                 <div class="box p-4" style="border: 1px solid #ccc; height: 500px;">
-                    <table class="table border-none text-center">
+                    <table class="table border-none text-center" id="drugTable">
                         <thead>
                             <tr>
                                 <th class="fw-bold" style="width: 50%;">Drug</th>
@@ -53,43 +52,28 @@
                                 <th class="fw-bold" style="width: 30%;">Amount</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @php $totalAmount = 0; @endphp
-                            @foreach ($drugs as $drug)
-                            @php
-                            $amount = $drug->quantity * $drug->price;
-                            $totalAmount += $amount; // Add to total
-                            @endphp
-                            <tr>
-                                <td>{{$drug->drug_name}}</td>
-                                <td>{{$drug->quantity}}</td>
-                                <td>{{$drug->amount}}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
+                        <tbody id="drugTableBody"></tbody>
                         <tfoot>
                             <tr>
                                 <td class="fw-bold" colspan="1"></td>
                                 <td class="fw-bold" colspan="1">Total</td>
-                                <td class="fw-bold">{{ number_format($totalAmount, 2) }}</td>
+                                <td class="fw-bold" id="totalAmount">0.00</td>
                             </tr>
                         </tfoot>
                     </table>
 
-                    <!-- Form inside the same box -->
                     <div class="container mt-4">
-                        <form action="{{ route('quotation.addDrugs', ['prescription_id' => $subscription->id]) }}"
-                            method="POST">
-                            @csrf
+                        <form id="drugForm">
                             <div class="row mb-3">
                                 <div class="col-md-6 offset-md-6">
                                     <div class="mb-3 d-flex align-items-center">
-                                        <label for="drug_name" class="form-label mr-3"
-                                            style="width: 100px;">Drug:</label>
-                                        <select id="drug_id" name="drug_name" class="form-control" required>
+                                        <label for="drug_id" class="form-label mr-3" style="width: 100px;">Drug:</label>
+                                        <select id="drug_id" name="drug_id" class="form-control" required>
                                             <option value="" disabled selected>Select a drug</option>
                                             @foreach($drugs_details as $drug)
-                                            <option value="{{ $drug->id }}">{{ $drug->drug_name }}</option>
+                                            <option value="{{ $drug->id }}" data-price="{{ $drug->price }}">
+                                                {{ $drug->drug_name }}
+                                            </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -101,34 +85,117 @@
                                             placeholder="Enter drug quantity" required>
                                     </div>
                                     <div class="d-flex justify-content-end">
-                                        <button type="submit" class="btn btn-primary">Add</button>
+                                        <button type="button" class="btn btn-primary" id="addDrug">Add</button>
                                     </div>
                                 </div>
                             </div>
                         </form>
                     </div>
+
                     <hr class="my-4" style="width: 100%; border: 1px solid black;">
-                    <form action="{{ route('send.quotation')}}" method="POST">
-                        <!-- method('PUT') -->
+                    <form id="sendQuotationForm">
                         @csrf
                         <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">Send Quotation</button>
+                            <button type="button" class="btn btn-primary" id="sendQuotation">Send Quotation</button>
                         </div>
                     </form>
                 </div>
             </div>
-
         </div>
     </div>
 </x-app-layout>
 
 <script>
-function swapImage(smallImg, index) {
+function swapImage(smallImg) {
     let largeImage = document.getElementById("largeImage");
-
-    // Swap the image sources
-    let tempSrc = largeImage.src;
-    largeImage.src = smallImg.src;
-    smallImg.src = tempSrc;
+    [largeImage.src, smallImg.src] = [smallImg.src, largeImage.src];
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    const drugTableBody = document.getElementById("drugTableBody");
+    const totalAmountEl = document.getElementById("totalAmount");
+
+    // Extract prescription_id from URL
+    const subscriptionId = "{{ $subscriptionId }}";
+    console.log('Prescription ID:', subscriptionId);
+    // Clear sessionStorage on page load
+    sessionStorage.removeItem("drugs");
+
+    function updateTable() {
+        drugTableBody.innerHTML = "";
+        let totalAmount = 0;
+        let drugs = JSON.parse(sessionStorage.getItem("drugs")) || [];
+
+        drugs.forEach((drug, index) => {
+            let row = `<tr>
+                    <td>${drug.name}</td>
+                    <td>${drug.quantity}</td>
+                    <td>${drug.amount.toFixed(2)}</td>
+                </tr>`;
+            drugTableBody.innerHTML += row;
+            totalAmount += drug.amount;
+        });
+
+        totalAmountEl.innerText = totalAmount.toFixed(2);
+    }
+
+    document.getElementById("addDrug").addEventListener("click", function() {
+        let drugSelect = document.getElementById("drug_id");
+        let quantityInput = document.getElementById("quantity");
+
+        let selectedOption = drugSelect.options[drugSelect.selectedIndex];
+        let drugName = selectedOption.text;
+        let drugPrice = parseFloat(selectedOption.getAttribute("data-price"));
+        let quantity = parseInt(quantityInput.value);
+
+        if (!quantity || isNaN(drugPrice)) {
+            alert("Please select a drug and enter a valid quantity.");
+            return;
+        }
+
+        let drug = {
+            name: drugName,
+            quantity: quantity,
+            amount: drugPrice * quantity,
+        };
+
+        // Store drugs in sessionStorage
+        let drugs = JSON.parse(sessionStorage.getItem("drugs")) || [];
+        drugs.push(drug);
+        sessionStorage.setItem("drugs", JSON.stringify(drugs));
+
+        updateTable();
+        drugSelect.value = ""; // Reset selection
+        quantityInput.value = ""; // Reset quantity
+    });
+
+    // Send quotation
+    document.getElementById("sendQuotation").addEventListener("click", function() {
+        let drugs = JSON.parse(sessionStorage.getItem("drugs")) || [];
+
+        if (drugs.length === 0) {
+            alert("Please add some drugs before sending the quotation.");
+            return;
+        }
+
+        fetch(`/pharmacy/send_quotation/${subscriptionId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        "content"),
+                },
+                body: JSON.stringify({
+                    drugs: drugs
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.success || data.error);
+                sessionStorage.removeItem("drugs");
+                updateTable();
+            })
+            .catch(error => console.error("Error:", error));
+    });
+});
 </script>

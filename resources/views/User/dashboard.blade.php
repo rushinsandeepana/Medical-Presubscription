@@ -15,9 +15,10 @@
                     class="bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-700 px-5 py-2 inline-block text-center">
                     Upload Prescription
                 </a>
-                <button class="w-[100px] h-[50px] bg-green-500 text-white font-bold rounded-lg hover:bg-green-700">
-                    Button 2
-                </button>
+                <a href="{{ route('view.quotation') }}"
+                    class="bg-green-500 text-white font-bold rounded-lg hover:bg-green-700 px-5 py-2 inline-block text-center">
+                    View Quotation
+                </a>
             </div>
         </div>
     </div>
