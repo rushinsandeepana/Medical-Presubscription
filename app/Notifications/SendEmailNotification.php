@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Models\Quotation;
 
 class SendEmailNotification extends Notification
 {
@@ -34,13 +35,19 @@ class SendEmailNotification extends Notification
     /**
      * Get the mail representation of the notification.
      */
+
     public function toMail(object $notifiable): MailMessage
     {
+        $quotation = Quotation::find($this->details['quotationId']);
+    
         return (new MailMessage)
-                    ->greeting($this->details['greeting'])
-                    ->line($this->details['body'])
-                    ->action($this->details['actiontext'], $this->details['actionurl'])
-                    ->line($this->details['lastline']);
+            ->subject('Your Quotation Details')
+            ->view('Pharmacy.email_templete', [
+                'user' => $this->details['user'],
+                'drugs' => $this->details['drugs'],
+                'quotationId' => $this->details['quotationId'],
+                'quotation' => $quotation
+            ]);
     }
 
     /**

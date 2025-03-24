@@ -48,7 +48,9 @@ Route::prefix('pharmacy')->group(function () {
 
     Route::post('/send_quotation/{subscriptionId}', [QuotationController::class, 'sendQuotation'])->name('send.quotation');
     Route::get('/view_quotations', [QuotationController::class, 'viewQuotation'])->name('view.quotation');
-    Route::get('/send', [QuotationController::class, 'sendNotification']);
+    Route::get('/send/{subscriptionId}', [QuotationController::class, 'sendNotification']);
+    Route::get('/quotations/confirm/{id}', [QuotationController::class, 'ConfirmStatus'])->name('quotation.confirm');
+    Route::get('/quotations/reject/{id}', [QuotationController::class, 'RejectStatus'])->name('quotation.reject');
 });
 
 

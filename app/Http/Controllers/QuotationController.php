@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 // use Illuminate\Notifications\Notification;
 use App\Notifications\SendEmailNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 class QuotationController extends Controller
 {
@@ -78,27 +79,91 @@ class QuotationController extends Controller
         return view('User.view_quotations', compact('quotations'));
     }
 
-    public function sendNotification(){
-        
-        $user=User::all();
+    public function sendNotification(Request $request, $subscriptionId)
+    {
+        $prescription = Prescription::find($subscriptionId);
+        $user = User::find($prescription->user_id);
+        $latestQuotation = DB::table('quotations')
+            ->join('drugs', 'drugs.quotation_id', '=', 'quotations.id')
+            ->where('drugs.prescription_id', $subscriptionId)
+            ->orderBy('quotations.id', 'desc') // Get the most recent quotation
+            ->select('quotations.id')
+            ->first();
+
+        $quotationId = $latestQuotation->id;
+
+        $drugs = DB::table('drugs')
+           ->join('prescriptions', 'prescriptions.id', '=', 'drugs.prescription_id')
+           ->join('drug_details', 'drug_details.id', '=', 'drugs.drug_details_id')
+           ->join('users', 'users.id', '=', 'prescriptions.user_id')
+           ->join('quotations', 'quotations.id', '=', 'drugs.quotation_id')
+           ->where('prescription_id', $subscriptionId)
+           ->where('quotations.id', $quotationId)
+           ->select('drug_details.drug_name as drug_name', 'drug_details.price as price',
+                    'quotations.total_amount as total_amount',
+                    'users.name as user_name',
+                    'drugs.prescription_id as prescription_id', 'drugs.quantity as quantity', 'drugs.amount as amount',
+                    'quotations.id as id')
+            
+           ->get();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found!'], 404);
+        }
 
         $details = [
-
-            'greeting' =>'Hi Rushin kolla',
-
-            'body' =>'This is the email body',
-
-            'actiontext' =>'i love you',
-            
-            'actionurl' =>'/',
-
-            'lastline' =>'This is the last line',
-
+            'greeting' => 'Hi ' . $user->name,
+            'body' => 'Here are your latest quotation details.',
+            'actiontext' => 'Confirm Quotation',
+            'actionurl' => url('/quotations/confirm/' . $quotationId),  // Confirm URL
+            'rejectText' => 'Reject Quotation',
+            'rejectUrl' => url('/quotations/reject/' . $quotationId),  // Reject URL
+            'lastline' => 'Thank you for choosing our service.',
+            'user' => $user,
+            'drugs' => $drugs,
+            'quotationId' => $quotationId
         ];
-        
+
         Notification::send($user, new SendEmailNotification($details));
 
-        dd('done');
+        return response()->json(['message' => 'Email sent successfully to ' . $user->email]);
     }
 
+    public function updateStatus(Request $request)
+    {
+        try {
+            Log::info('Updating status for quotation:', ['quotation_id' => $request->quotation_id, 'status' => $request->status]);
+
+            $request->validate([
+                'quotation_id' => 'required|integer',
+                'status' => 'required|in:confirmed,rejected',
+            ]);
+
+            $quotation = Quotation::findOrFail($request->quotation_id);
+            $quotation->status = $request->status;
+            $quotation->save();
+
+            return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
+        } catch (\Exception $e) {
+            Log::error('Error updating status:', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Something went wrong.'], 500);
+        }
+    }
+
+    public function ConfirmStatus($id){
+        $data = Quotation::find($id);
+        $data -> status = 'confirmed';
+        $data->save();
+
+        return redirect()->back()->with('message', 'Quotation is confirmed!');
+    }
+
+    public function RejectStatus($id){
+        $data = Quotation::find($id);
+        $data -> status = 'rejected';
+        $data->save();
+
+        return redirect()->back()->with('message', 'Quotation is rejected!');
+    }
+   
 }

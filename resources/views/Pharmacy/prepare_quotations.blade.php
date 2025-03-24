@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function() {
         quantityInput.value = ""; // Reset quantity
     });
 
-    // Send quotation
+    // Send quotation and notification
     document.getElementById("sendQuotation").addEventListener("click", function() {
         let drugs = JSON.parse(sessionStorage.getItem("drugs")) || [];
 
@@ -178,6 +178,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
+        // Send quotation request
         fetch(`/pharmacy/send_quotation/${subscriptionId}`, {
                 method: "POST",
                 headers: {
@@ -192,10 +193,27 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(response => response.json())
             .then(data => {
                 alert(data.success || data.error);
+                if (data.success) {
+                    // Send notification if quotation is sent successfully
+                    sendNotification();
+                }
                 sessionStorage.removeItem("drugs");
                 updateTable();
             })
             .catch(error => console.error("Error:", error));
     });
+
+    function sendNotification() {
+        fetch(`/pharmacy/send/${subscriptionId}`, {
+                method: "GET"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Notification sent successfully!');
+            })
+            .catch(error => {
+                console.error('Error sending notification:', error);
+            });
+    }
 });
 </script>
