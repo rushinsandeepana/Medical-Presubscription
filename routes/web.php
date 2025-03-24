@@ -51,6 +51,7 @@ Route::prefix('pharmacy')->group(function () {
     Route::get('/send/{subscriptionId}', [QuotationController::class, 'sendNotification']);
     Route::get('/quotations/confirm/{id}', [QuotationController::class, 'ConfirmStatus'])->name('quotation.confirm');
     Route::get('/quotations/reject/{id}', [QuotationController::class, 'RejectStatus'])->name('quotation.reject');
+    Route::get('/quotations/status-details', [QuotationController::class, 'QuotationStatus'])->name('quotation.status');
 });
 
 

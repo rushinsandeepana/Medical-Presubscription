@@ -129,27 +129,6 @@ class QuotationController extends Controller
         return response()->json(['message' => 'Email sent successfully to ' . $user->email]);
     }
 
-    public function updateStatus(Request $request)
-    {
-        try {
-            Log::info('Updating status for quotation:', ['quotation_id' => $request->quotation_id, 'status' => $request->status]);
-
-            $request->validate([
-                'quotation_id' => 'required|integer',
-                'status' => 'required|in:confirmed,rejected',
-            ]);
-
-            $quotation = Quotation::findOrFail($request->quotation_id);
-            $quotation->status = $request->status;
-            $quotation->save();
-
-            return response()->json(['success' => true, 'message' => 'Status updated successfully.']);
-        } catch (\Exception $e) {
-            Log::error('Error updating status:', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Something went wrong.'], 500);
-        }
-    }
-
     public function ConfirmStatus($id){
         $data = Quotation::find($id);
         $data -> status = 'confirmed';
@@ -165,5 +144,34 @@ class QuotationController extends Controller
 
         return redirect()->back()->with('message', 'Quotation is rejected!');
     }
+
+    public function QuotationStatus(Request $request) {
+        $perPage = $request->input('per_page', 10); // Default to 10 rows per page
+        $search = $request->input('search');
+    
+        $query = DB::table('quotations')
+            ->join('drugs', 'drugs.quotation_id', '=', 'quotations.id')
+            ->join('prescriptions', 'prescriptions.id', '=', 'drugs.prescription_id')
+            ->join('users', 'users.id', '=', 'prescriptions.user_id')
+            ->select(
+                'users.name as username',
+                'prescriptions.id as prescription_id',
+                'quotations.id as quotation_id',
+                'quotations.total_amount as total_amount',
+                'quotations.status as status'
+            );
+    
+        if (!empty($search)) {
+            $query->where('users.name', 'LIKE', "%$search%")
+                ->orWhere('prescriptions.id', 'LIKE', "%$search%")
+                ->orWhere('quotations.id', 'LIKE', "%$search%")
+                ->orWhere('quotations.total_amount', 'LIKE', "%$search%")
+                ->orWhere('quotations.status', 'LIKE', "%$search%");
+        }
+    
+        $quotationStatus = $query->paginate($perPage)->appends(['search' => $search, 'per_page' => $perPage]);
+    
+        return view('Pharmacy.view_quotation_status', compact('quotationStatus', 'perPage', 'search'));
+    }     
    
 }
